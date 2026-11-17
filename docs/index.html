@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AnkerBar</title>
+<meta name="description" content="Menu bar app and desktop widget for the Anker Prime 3-in-1 wireless charger. Live power of each pad over Bluetooth.">
+<meta property="og:title" content="AnkerBar">
+<meta property="og:description" content="Live power of each pad of the Anker Prime 3-in-1 charger, in the macOS menu bar and a desktop widget.">
+<meta property="og:image" content="https://andrewkomkov.github.io/anker-widget/widget-medium.png">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  :root {
+    --bg: #07090c;
+    --panel: rgba(255,255,255,.04);
+    --line: rgba(255,255,255,.09);
+    --text: #f2f4f7;
+    --muted: rgba(242,244,247,.62);
+    --green: #5ced8c;
+    --bolt: #ffcc40;
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 600px at 0% 100%, rgba(92,237,140,.12), transparent 60%),
+      radial-gradient(800px 500px at 100% 0%, rgba(80,200,255,.10), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; }
+  .brand img { width: 30px; height: 30px; }
+  .nav { display: flex; align-items: center; gap: 18px; font-size: 15px; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .nav a:hover { color: var(--text); }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .lang button {
+    border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600;
+    padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { background: rgba(255,255,255,.12); color: var(--text); }
+
+  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 56px 0 72px; }
+  .eyebrow { color: var(--green); font-weight: 600; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; }
+  h1 { font-size: clamp(38px, 6vw, 60px); line-height: 1.04; letter-spacing: -.02em; margin: 12px 0 18px; }
+  h1 .w { background: linear-gradient(90deg, var(--green), #8ef0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { color: var(--muted); font-size: 19px; max-width: 34ch; margin: 0 0 30px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600;
+    padding: 13px 22px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel);
+  }
+  .btn.primary { background: var(--green); color: #062612; border-color: transparent; }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:not(.primary):hover { background: rgba(255,255,255,.08); }
+  .fine { color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+  .shots { position: relative; min-height: 340px; }
+  .shots img { display: block; border-radius: 26px; filter: drop-shadow(0 30px 60px rgba(0,0,0,.55)); }
+  .shots .m { width: 100%; max-width: 480px; }
+  .shots .s { width: 46%; max-width: 230px; position: absolute; right: -6px; bottom: -40px; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 30px; letter-spacing: -.01em; margin: 0 0 26px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+  .card h3 { margin: 10px 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(92,237,140,.14); color: var(--green); }
+  .ico svg { width: 20px; height: 20px; }
+
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 12px; max-width: 760px; }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; }
+  ol.steps li::before {
+    content: counter(s); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(255,255,255,.08); font-weight: 700; font-size: 14px;
+  }
+  code, pre { font: 14px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+  pre { background: #0d1117; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 8px 0 0; overflow-x: auto; }
+  p code, li code { background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 6px; }
+
+  .flow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-weight: 600; }
+  .flow span.node { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+  .flow span.arr { color: var(--muted); font-weight: 400; font-size: 14px; }
+  .muted { color: var(--muted); }
+
+  footer { padding: 36px 0 56px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+
+  [data-l]:not(.on) { display: none; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: minmax(0, 1fr); padding-top: 24px; gap: 56px; }
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .shots { min-height: 0; padding-bottom: 50px; }
+    .nav a.hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="#">
+      <img src="icon.png" width="30" height="30" alt="">
+      AnkerBar
+    </a>
+    <nav class="nav">
+      <a class="hide-sm" href="#install"><span data-l="en">Install</span><span data-l="ru">Установка</span></a>
+      <a class="hide-sm" href="https://github.com/andrewkomkov/anker-widget">GitHub</a>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-set="en">EN</button>
+        <button type="button" data-set="ru">RU</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">macOS · Anker Prime 3-in-1</div>
+        <h1>
+          <span data-l="en">See the <span class="w">watts</span> on every pad</span>
+          <span data-l="ru">Ватты на каждой <span class="w">площадке</span></span>
+        </h1>
+        <p class="lead">
+          <span data-l="en">A menu bar app and desktop widget for the Anker Prime Wireless Charging Station. Phone, watch and earbuds, live over Bluetooth. No Anker app, no account.</span>
+          <span data-l="ru">Приложение для строки меню и виджет для Anker Prime Wireless Charging Station. Телефон, часы и наушники в реальном времени по Bluetooth. Без приложения Anker и аккаунта.</span>
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/andrewkomkov/anker-widget/releases/latest/download/AnkerBar.zip">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            <span data-l="en">Download for Mac</span><span data-l="ru">Скачать для Mac</span>
+          </a>
+          <a class="btn" href="https://github.com/andrewkomkov/anker-widget">
+            <span data-l="en">Source code</span><span data-l="ru">Исходный код</span>
+          </a>
+        </div>
+        <div class="fine">
+          <span data-l="en">Free and open source · macOS 15 or later · English and Russian</span>
+          <span data-l="ru">Бесплатно, открытый код · macOS 15 или новее · русский и английский</span>
+        </div>
+      </div>
+      <div class="shots">
+        <img class="m" src="widget-medium.png" alt="Medium widget: 8.7 W total, phone 7.5 W, watch 1.0 W">
+        <img class="s" src="widget-small.png" alt="Small widget">
+      </div>
+    </div>
+
+    <section>
+      <h2><span data-l="en">What you get</span><span data-l="ru">Что внутри</span></h2>
+      <div class="grid">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+          <h3><span data-l="en">Live in the menu bar</span><span data-l="ru">Живые цифры в меню</span></h3>
+          <p><span data-l="en">Total power next to the clock. Open the menu to see power, voltage and current of each pad.</span><span data-l="ru">Общая мощность рядом с часами. В меню — мощность, напряжение и ток каждой площадки.</span></p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8"/></svg></div>
+          <h3><span data-l="en">Desktop widget</span><span data-l="ru">Виджет на рабочий стол</span></h3>
+          <p><span data-l="en">Small and medium sizes with charge rings. Works with the tinted and clear widget styles.</span><span data-l="ru">Малый и средний размеры с кольцами зарядки. Поддерживает тонированный и прозрачный стили.</span></p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+          <h3><span data-l="en">Local only</span><span data-l="ru">Только локально</span></h3>
+          <p><span data-l="en">The app talks to the charger directly over Bluetooth LE. No cloud, no tracking, no network access.</span><span data-l="ru">Приложение говорит с зарядкой напрямую по Bluetooth LE. Без облака, слежки и выхода в сеть.</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <h2><span data-l="en">Install</span><span data-l="ru">Установка</span></h2>
+      <ol class="steps">
+        <li><div>
+          <span data-l="en">Download <a href="https://github.com/andrewkomkov/anker-widget/releases/latest/download/AnkerBar.zip"><code>AnkerBar.zip</code></a> and unzip it.</span>
+          <span data-l="ru">Скачайте <a href="https://github.com/andrewkomkov/anker-widget/releases/latest/download/AnkerBar.zip"><code>AnkerBar.zip</code></a> и распакуйте.</span>
+        </div></li>
+        <li><div>
+          <span data-l="en">Move <code>AnkerBar.app</code> to the Applications folder.</span>
+          <span data-l="ru">Перенесите <code>AnkerBar.app</code> в папку «Программы».</span>
+        </div></li>
+        <li><div>
+          <span data-l="en">The app is not notarized by Apple, so remove the quarantine flag once:</span>
+          <span data-l="ru">Apple не заверяла приложение, поэтому один раз снимите карантин:</span>
+          <pre>xattr -dr com.apple.quarantine /Applications/AnkerBar.app</pre>
+        </div></li>
+        <li><div>
+          <span data-l="en">Open AnkerBar and allow Bluetooth access.</span>
+          <span data-l="ru">Откройте AnkerBar и разрешите доступ к Bluetooth.</span>
+        </div></li>
+        <li><div>
+          <span data-l="en">Right-click the desktop → Edit Widgets → <b>Anker Prime</b>.</span>
+          <span data-l="ru">Правый клик по рабочему столу → «Изменить виджеты» → <b>Anker Prime</b>.</span>
+        </div></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2><span data-l="en">How it works</span><span data-l="ru">Как это работает</span></h2>
+      <div class="flow">
+        <span class="node"><span data-l="en">Charger</span><span data-l="ru">Зарядка</span></span>
+        <span class="arr">— BLE →</span>
+        <span class="node">AnkerBar.app</span>
+        <span class="arr">— App Group →</span>
+        <span class="node"><span data-l="en">Widget</span><span data-l="ru">Виджет</span></span>
+      </div>
+      <p class="muted" style="max-width:760px;margin-top:22px">
+        <span data-l="en">AnkerBar finds the charger by its Anker service, runs the encrypted handshake (AES-GCM, then ECDH on P-256) and subscribes to telemetry. Each pad reports status, voltage, current and power. The protocol is ported from <a href="https://github.com/flip-dots/SolixBLE">SolixBLE</a> to Swift, with CoreBluetooth and CryptoKit.</span>
+        <span data-l="ru">AnkerBar находит зарядку по сервису Anker, проходит зашифрованное рукопожатие (AES-GCM, затем ECDH на P-256) и подписывается на телеметрию. Каждая площадка сообщает статус, напряжение, ток и мощность. Протокол перенесён из <a href="https://github.com/flip-dots/SolixBLE">SolixBLE</a> на Swift с CoreBluetooth и CryptoKit.</span>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <span data-l="en">MIT license. Anker is a trademark of Anker Innovations. This project is not affiliated with Anker.</span>
+    <span data-l="ru">Лицензия MIT. Anker — товарный знак Anker Innovations. Проект с Anker не связан.</span>
+  </footer>
+</div>
+<script>
+  (function () {
+    var KEY = "ankerbar-lang";
+    function apply(lang) {
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-l]").forEach(function (el) {
+        el.classList.toggle("on", el.getAttribute("data-l") === lang);
+      });
+      document.querySelectorAll("[data-set]").forEach(function (b) {
+        b.setAttribute("aria-pressed", String(b.getAttribute("data-set") === lang));
+      });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    var lang = saved || ((navigator.language || "en").toLowerCase().indexOf("ru") === 0 ? "ru" : "en");
+    apply(lang);
+    document.querySelectorAll("[data-set]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var l = b.getAttribute("data-set");
+        try { localStorage.setItem(KEY, l); } catch (e) {}
+        apply(l);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

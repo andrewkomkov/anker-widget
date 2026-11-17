@@ -119,7 +119,7 @@ struct ChargerWidgetContent: View {
     private func caption(_ s: ChargerState) -> some View {
         Group {
             if entry.stale {
-                Text("нет связи · \(s.date.formatted(date: .omitted, time: .shortened))")
+                Text("no connection · \(s.date.formatted(date: .omitted, time: .shortened))")
             } else {
                 Text("Anker Prime")
             }
@@ -165,17 +165,13 @@ struct ChargerWidgetContent: View {
 
     private func activeSummary(_ s: ChargerState) -> String {
         let n = entry.stale ? 0 : s.pads.filter(\.isCharging).count
-        switch n {
-        case 0: return "ничего не заряжается"
-        case 1: return "заряжается 1 устройство"
-        default: return "заряжается \(n) устройства"
-        }
+        return n == 0 ? String(localized: "nothing charging") : String(localized: "\(n) devices charging")
     }
 
     private var empty: some View {
         VStack(spacing: 6) {
             Image(systemName: "bolt.slash.fill").font(.title2)
-            Text("Нет данных.\nЗапустите AnkerBar")
+            Text("No data.\nOpen AnkerBar")
                 .font(.caption)
                 .multilineTextAlignment(.center)
         }

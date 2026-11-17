@@ -11,10 +11,10 @@ enum PadKind: String, Codable {
 
     var title: String {
         switch self {
-        case .phone: "Телефон"
-        case .watch: "Часы"
-        case .earbuds: "Наушники"
-        case .other: "Площадка"
+        case .phone: String(localized: "Phone")
+        case .watch: String(localized: "Watch")
+        case .earbuds: String(localized: "Earbuds")
+        case .other: String(localized: "Pad")
         }
     }
 
@@ -93,7 +93,12 @@ enum SharedStore {
     }
 }
 
-func formatWatts(_ w: Double) -> String {
-    (w >= 10 ? String(format: "%.0f Вт", w) : String(format: "%.1f Вт", w))
-        .replacingOccurrences(of: ".", with: ",")
+private func formatUnit(_ value: Double, _ unit: Dimension, digits: Int) -> String {
+    Measurement(value: value, unit: unit).formatted(
+        .measurement(width: .abbreviated, usage: .asProvided,
+                     numberFormatStyle: .number.precision(.fractionLength(digits))))
 }
+
+func formatWatts(_ w: Double) -> String { formatUnit(w, UnitPower.watts, digits: w >= 10 ? 0 : 1) }
+func formatVolts(_ v: Double) -> String { formatUnit(v, UnitElectricPotentialDifference.volts, digits: 2) }
+func formatAmps(_ a: Double) -> String { formatUnit(a, UnitElectricCurrent.amperes, digits: 2) }

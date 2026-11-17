@@ -27,7 +27,7 @@ struct AnkerWidget: Widget {
             WidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Anker Prime")
-        .description("Мощность зарядки по площадкам.")
+        .description("Charging power of each pad.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

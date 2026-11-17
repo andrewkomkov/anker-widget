@@ -1,0 +1,234 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Total": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всего"
+          }
+        }
+      }
+    },
+    "Launch at login": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запускать при входе"
+          }
+        }
+      }
+    },
+    "Reconnect": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переподключить"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выход"
+          }
+        }
+      }
+    },
+    "updated %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "обновлено %@"
+          }
+        }
+      }
+    },
+    "Bluetooth is off": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth выключен"
+          }
+        }
+      }
+    },
+    "Allow Bluetooth for AnkerBar in System Settings": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешите AnkerBar доступ к Bluetooth в Системных настройках"
+          }
+        }
+      }
+    },
+    "Looking for the charger…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ищу зарядку…"
+          }
+        }
+      }
+    },
+    "Connecting to the charger…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключаюсь к зарядке…"
+          }
+        }
+      }
+    },
+    "Phone": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Телефон"
+          }
+        }
+      }
+    },
+    "Watch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Часы"
+          }
+        }
+      }
+    },
+    "Earbuds": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Наушники"
+          }
+        }
+      }
+    },
+    "Pad": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Площадка"
+          }
+        }
+      }
+    },
+    "no connection · %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "нет связи · %@"
+          }
+        }
+      }
+    },
+    "nothing charging": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ничего не заряжается"
+          }
+        }
+      }
+    },
+    "No data.\nOpen AnkerBar": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет данных.\nОткройте AnkerBar"
+          }
+        }
+      }
+    },
+    "Charging power of each pad.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мощность зарядки по площадкам."
+          }
+        }
+      }
+    },
+    "Anker Prime": {
+      "shouldTranslate": false
+    },
+    "%@ · %@": {
+      "shouldTranslate": false
+    },
+    "%lld devices charging": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld device charging"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld devices charging"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "заряжается %lld устройство"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "заряжается %lld устройства"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "заряжается %lld устройств"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "заряжается %lld устройства"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,22 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "NSBluetoothAlwaysUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AnkerBar reads charging power from your Anker charger over Bluetooth."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AnkerBar получает мощность зарядки Anker по Bluetooth."
+          }
+        }
+      }
+    }
+  }
+}

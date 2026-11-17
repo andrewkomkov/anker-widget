@@ -2,95 +2,77 @@ import Foundation
 import SwiftUI
 import WidgetKit
 
-/// Runs the Python daemon, decodes its JSON lines and feeds the menu and the widget.
+/// Owns the Bluetooth link, feeds the menu and shares the state with the widget.
 @MainActor
 final class ChargerModel: ObservableObject {
     @Published private(set) var state: ChargerState?
-    @Published private(set) var statusText = "Подключаюсь к зарядке…"
+    @Published private(set) var status: ChargerBLE.Status = .scanning
 
-    private var process: Process?
-    private var buffer = Data()
+    private let ble = ChargerBLE()
     private var lastWidgetReload = Date.distantPast
     private var lastWidgetKey = ""
+    private var heartbeat: Timer?
 
-    /// Widget reloads are budgeted by the system; reload at once when a pad
+    /// Widget reloads are budgeted by the system: reload at once when a pad
     /// starts or stops, otherwise at most this often.
     private let widgetMinInterval: TimeInterval = 60
 
     init() {
         state = SharedStore.load()
-        startDaemon()
-    }
-
-    // MARK: daemon
-
-    private var projectDir: URL {
-        let path = Bundle.main.object(forInfoDictionaryKey: "AnkerProjectDir") as? String ?? ""
-        return URL(fileURLWithPath: path).standardizedFileURL
-    }
-
-    func restartDaemon() {
-        process?.terminationHandler = nil
-        process?.terminate()
-        process = nil
-        statusText = "Подключаюсь к зарядке…"
-        startDaemon()
-    }
-
-    private func startDaemon() {
-        let python = projectDir.appendingPathComponent(".venv/bin/python")
-        let script = projectDir.appendingPathComponent("daemon/ankerd.py")
-        guard FileManager.default.fileExists(atPath: python.path) else {
-            statusText = "Нет \(python.path)"
-            return
+        ble.onStatus = { [weak self] s in
+            MainActor.assumeIsolated { self?.statusChanged(s) }
         }
-        let p = Process()
-        p.executableURL = python
-        p.arguments = ["-u", script.path]
-        let out = Pipe()
-        p.standardOutput = out
-        p.standardError = FileHandle.nullDevice
-        out.fileHandleForReading.readabilityHandler = { [weak self] h in
-            let chunk = h.availableData
-            guard !chunk.isEmpty else { return }
-            Task { @MainActor in self?.consume(chunk) }
+        ble.onTelemetry = { [weak self] t, info, name in
+            MainActor.assumeIsolated { self?.telemetry(t, info: info, name: name) }
         }
-        p.terminationHandler = { [weak self] _ in
-            Task { @MainActor in
-                self?.statusText = "Демон остановился, перезапуск…"
-                try? await Task.sleep(for: .seconds(5))
-                if self?.process?.isRunning == false { self?.startDaemon() }
-            }
-        }
-        do {
-            try p.run()
-            process = p
-        } catch {
-            statusText = "Не запустить демон: \(error.localizedDescription)"
-        }
-    }
-
-    private func consume(_ chunk: Data) {
-        buffer.append(chunk)
-        while let nl = buffer.firstIndex(of: 0x0A) {
-            let line = buffer[buffer.startIndex..<nl]
-            buffer.removeSubrange(buffer.startIndex...nl)
-            if let s = try? JSONDecoder().decode(ChargerState.self, from: Data(line)) {
-                apply(s, forceWidget: false)
+        // Keep the shared timestamp fresh while the charger reports nothing new.
+        heartbeat = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.status == .live, var s = self.state else { return }
+                s.ts = Date().timeIntervalSince1970
+                self.publish(s, forceWidget: false)
             }
         }
     }
 
-    private func apply(_ incoming: ChargerState, forceWidget: Bool) {
-        var s = incoming
-        if s.device?.firmware == nil, let old = state?.device { s.device = old }
-        s.pads = s.pads.map { var p = $0; p.kind = PadKind.forPad(p.id); return p }
+    var statusText: LocalizedStringKey {
+        switch status {
+        case .bluetoothOff: "Bluetooth is off"
+        case .unauthorized: "Allow Bluetooth for AnkerBar in System Settings"
+        case .scanning: "Looking for the charger…"
+        case .connecting, .negotiating: "Connecting to the charger…"
+        case .live: ""
+        }
+    }
+
+    func reconnect() { ble.reconnect() }
+
+    private func statusChanged(_ s: ChargerBLE.Status) {
+        status = s
+        if s != .live, var st = state, st.connected {
+            st.connected = false
+            publish(st, forceWidget: true)
+        }
+    }
+
+    private func telemetry(_ t: [String: Data], info: DeviceInfoPacket?, name: String?) {
+        let pads = decodePads(t)
+        var device = state?.device ?? DeviceInfo()
+        if let info {
+            device = DeviceInfo(name: info.name, firmware: info.firmware, serial: info.serial)
+        }
+        let s = ChargerState(
+            ts: Date().timeIntervalSince1970, connected: true, device: device, pads: pads,
+            total: (pads.reduce(0) { $0 + $1.watts } * 100).rounded() / 100, error: nil)
+        publish(s, forceWidget: false)
+    }
+
+    private func publish(_ s: ChargerState, forceWidget: Bool) {
+        let changed = s.pads.map(\.watts) != state?.pads.map(\.watts) || s.connected != state?.connected
         state = s
-        statusText = s.connected ? "" : (s.error.map { "Зарядка: \($0)" } ?? "Нет связи с зарядкой")
         SharedStore.save(s)
-
-        let key = "\(s.connected)|" + s.pads.map { "\($0.status)\($0.kind?.rawValue ?? "")" }.joined(separator: ",")
-        let due = Date().timeIntervalSince(lastWidgetReload) >= widgetMinInterval
+        let key = "\(s.connected)|" + s.pads.map(\.status).joined(separator: ",")
+        let due = changed && Date().timeIntervalSince(lastWidgetReload) >= widgetMinInterval
         if forceWidget || key != lastWidgetKey || due {
             WidgetCenter.shared.reloadAllTimelines()
             lastWidgetReload = Date()

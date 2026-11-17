@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     macOS: "15.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 
 # Team and signing come from Signing.xcconfig, which includes the untracked Local.xcconfig.
 configFiles:
@@ -13,13 +14,13 @@ configFiles:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.0"
+    MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
     ENABLE_HARDENED_RUNTIME: NO
     DEAD_CODE_STRIPPING: YES
 
 targets:
-  # Menu bar app: starts the Python BLE daemon, shows live power,
+  # Menu bar app: talks to the charger over CoreBluetooth, shows live power,
   # writes state to the app group container and reloads the widget.
   AnkerBar:
     type: application
@@ -38,16 +39,18 @@ targets:
       path: AnkerBar/Info.plist
       properties:
         CFBundleName: AnkerBar
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDisplayName: AnkerBar
         LSUIElement: true
+        CFBundleLocalizations: [en, ru]
         LSMinimumSystemVersion: "15.0"
         NSBluetoothAlwaysUsageDescription: "AnkerBar reads charging power from your Anker charger over Bluetooth."
-        # Folder with daemon/ and .venv/; the app runs the daemon from there.
-        AnkerProjectDir: "$(SRCROOT)/.."
         AppGroupID: "$(DEVELOPMENT_TEAM).com.andrewkomkov.ankerbar"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.andrewkomkov.ankerbar
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   # WidgetKit extension: reads the state file, never talks to Bluetooth.
   AnkerWidget:
@@ -66,6 +69,9 @@ targets:
       path: AnkerWidget/Info.plist
       properties:
         CFBundleDisplayName: Anker Charger
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleLocalizations: [en, ru]
         AppGroupID: "$(DEVELOPMENT_TEAM).com.andrewkomkov.ankerbar"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
