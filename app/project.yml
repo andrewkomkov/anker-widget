@@ -1,0 +1,75 @@
+name: AnkerBar
+options:
+  bundleIdPrefix: com.andrewkomkov
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+
+# Team and signing come from Signing.xcconfig, which includes the untracked Local.xcconfig.
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_HARDENED_RUNTIME: NO
+    DEAD_CODE_STRIPPING: YES
+
+targets:
+  # Menu bar app: starts the Python BLE daemon, shows live power,
+  # writes state to the app group container and reloads the widget.
+  AnkerBar:
+    type: application
+    platform: macOS
+    sources:
+      - path: AnkerBar
+      - path: Shared
+    dependencies:
+      - target: AnkerWidget
+    entitlements:
+      path: AnkerBar/AnkerBar.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(DEVELOPMENT_TEAM).com.andrewkomkov.ankerbar
+    info:
+      path: AnkerBar/Info.plist
+      properties:
+        CFBundleName: AnkerBar
+        CFBundleDisplayName: AnkerBar
+        LSUIElement: true
+        LSMinimumSystemVersion: "15.0"
+        NSBluetoothAlwaysUsageDescription: "AnkerBar reads charging power from your Anker charger over Bluetooth."
+        # Folder with daemon/ and .venv/; the app runs the daemon from there.
+        AnkerProjectDir: "$(SRCROOT)/.."
+        AppGroupID: "$(DEVELOPMENT_TEAM).com.andrewkomkov.ankerbar"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andrewkomkov.ankerbar
+
+  # WidgetKit extension: reads the state file, never talks to Bluetooth.
+  AnkerWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: AnkerWidget
+      - path: Shared
+    entitlements:
+      path: AnkerWidget/AnkerWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - $(DEVELOPMENT_TEAM).com.andrewkomkov.ankerbar
+    info:
+      path: AnkerWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Anker Charger
+        AppGroupID: "$(DEVELOPMENT_TEAM).com.andrewkomkov.ankerbar"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andrewkomkov.ankerbar.widget
+        SKIP_INSTALL: YES

@@ -1,0 +1,11 @@
+.venv
+__pycache__/
+*.pyc
+app/*.xcodeproj
+app/AnkerBar/Info.plist
+app/AnkerWidget/Info.plist
+app/AnkerBar/AnkerBar.entitlements
+app/AnkerWidget/AnkerWidget.entitlements
+.DS_Store
+app/Local.xcconfig
+app/build/

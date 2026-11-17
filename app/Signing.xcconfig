@@ -1,0 +1,4 @@
+// Copy Local.xcconfig.example to Local.xcconfig and set your team.
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+#include? "Local.xcconfig"

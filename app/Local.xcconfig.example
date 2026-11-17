@@ -1,0 +1,7 @@
+// Your Apple Developer Team ID (OU field of the signing certificate).
+DEVELOPMENT_TEAM = ABCDE12345
+
+// Without an Xcode account, sign manually with a local certificate:
+// CODE_SIGN_STYLE = Manual
+// CODE_SIGN_IDENTITY = <SHA-1 from `security find-identity -v -p codesigning`>
+// PROVISIONING_PROFILE_SPECIFIER =
